@@ -10,7 +10,7 @@ EXTRA_COMMANDS="reload_rule"
 V2RAY_REDIR_PORT=7070
 V2RAY_REDIR_PIDFILE=/var/run/v2ray-redir-go.pid 
 PDNSD_LOCAL_PORT=7453
-V2RAYCONF=/tmp/config.json
+V2RAYCONF=/etc/v2ray/config.json
 CRON_FILE=/etc/crontabs/root
 V2_CONF_GENERATE_LUA=/etc/v2ray/gen_config.lua
 CONFIG=v2raypro
@@ -47,6 +47,11 @@ get_config()
 	[ -f /lib/functions/network.sh ] && . /lib/functions/network.sh
 	network_get_subnet covered_subnets lan
 	network_get_ipaddr local_addresses lan
+
+	# 支持访客网络
+	network_get_subnet covered_subnets_lan lan
+	network_get_subnet covered_subnets_guest guest
+	covered_subnets="$covered_subnets_lan $covered_subnets_guest"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -328,7 +333,7 @@ add_rule()
 		G) : ;;
 		S)
 			iptables -t nat -A v2ray_pre -m set --match-set $vt_np_ipset dst -j RETURN
-			iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $V2RAY_REDIR_PORT
+			#iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $V2RAY_REDIR_PORT
 			;;
 		M)
 			ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
@@ -337,7 +342,7 @@ add_rule()
       ipset -! restore < /tmp/addinip.ipset
 			iptables -t nat -A v2ray_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
 			iptables -t nat -A v2ray_pre -m set --match-set $vt_np_ipset dst -j RETURN
-			iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set $vt_gfwlist dst -j REDIRECT --to $V2RAY_REDIR_PORT
+			#iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set $vt_gfwlist dst -j REDIRECT --to $V2RAY_REDIR_PORT
 			;;
 		V)
 			vt_np_ipset=""
@@ -359,8 +364,8 @@ del_rule()
 		iptables -t nat -X v2ray_pre 2>/dev/null
 	fi
 	
-	iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $V2RAY_REDIR_PORT 2>/dev/null
-	iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $V2RAY_REDIR_PORT 2>/dev/null
+	#iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $V2RAY_REDIR_PORT 2>/dev/null
+	#iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $V2RAY_REDIR_PORT 2>/dev/null
 	
 	/usr/bin/ip rule del fwmark 0x01/0x01 table 100
 	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100
