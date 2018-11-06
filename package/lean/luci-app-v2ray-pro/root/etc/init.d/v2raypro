@@ -211,7 +211,7 @@ global {
 	server_ip = 127.0.0.1;
 	server_port = $PDNSD_LOCAL_PORT;
 	status_ctl = on;
-	query_method = tcp_only;
+	query_method = udp_only;
 	min_ttl=1h;
 	max_ttl=1w;
 	timeout=10;
@@ -222,7 +222,7 @@ global {
 server {
 	label= "fwxxx";
 	ip = $tcp_dns_list;
-	port = 53;
+	port = 443;
 	timeout=6;
 	uptest=none;
 	interval=10m;
