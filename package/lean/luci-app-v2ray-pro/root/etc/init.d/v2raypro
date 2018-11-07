@@ -16,6 +16,7 @@ V2_CONF_GENERATE_LUA=/etc/v2ray/gen_config.lua
 CONFIG=v2raypro
 KEEP_GFWLIST=Y
 vt_np_ipset="china"
+wireguard_ip_range="192.168.88.1/24"
 
 get_config()
 {
@@ -51,7 +52,7 @@ get_config()
 	# 支持访客网络
 	network_get_subnet covered_subnets_lan lan
 	network_get_subnet covered_subnets_guest guest
-	covered_subnets="$covered_subnets_lan $covered_subnets_guest"
+	covered_subnets="$covered_subnets_lan $covered_subnets_guest $wireguard_ip_range"
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -223,10 +224,10 @@ server {
 	label= "fwxxx";
 	ip = $tcp_dns_list;
 	port = 443;
-	timeout=6;
-	uptest=none;
-	interval=10m;
-	purge_cache=off;
+	timeout = 6;
+	uptest = none;
+	interval = 10m;
+	purge_cache = off;
 }
 EOF
 
@@ -297,6 +298,8 @@ add_rule()
 		iptables -t nat -A v2ray_pre -d 192.168.0.0/16 -j RETURN
 		iptables -t nat -A v2ray_pre -d 127.0.0.0/8 -j RETURN
 		iptables -t nat -A v2ray_pre -d 224.0.0.0/3 -j RETURN
+		iptables -t nat -A v2ray_pre -d 208.67.222.222 -j RETURN
+		iptables -t nat -A v2ray_pre -d 208.67.220.220 -j RETURN
 	}
 	iptables -t nat -A v2ray_pre -d $vt_server_addr -j RETURN
 	
